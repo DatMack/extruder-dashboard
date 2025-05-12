@@ -1,54 +1,102 @@
-# React + TypeScript + Vite
+# Extruder Dashboard – Data Entry App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A robust, modular web application for logging, reviewing, and managing shift-based extrusion production data. Designed for operators and supervisors on the plant floor, this dashboard captures and visualizes operational metrics in real time.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📌 Project Purpose
 
-## Expanding the ESLint configuration
+The Extruder Dashboard streamlines data entry during manufacturing operations by:
+- Capturing operator input every 30 minutes
+- Supporting order start/end, shutdown tracking, and end-of-shift reporting
+- Presenting clean, structured inputs with future-ready architecture for user roles and persistent storage
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 🧠 Core Features
+
+- 📋 **Dynamic Data Entry Forms** — generated from a centralized config (`sections.ts`) for consistency
+- 🕓 **Time-aware Forms** — end-of-shift section only visible in last 30 minutes, enforced modal in final 10
+- 👤 **Operator Tracking** — shows who is logged in, with placeholder login modal
+- 📦 **Top Bar UI** — live system clock, lot #, product name, and operator shown persistently
+- 🧭 **Sidebar Navigation** — links to Home, Shift History, Reports, and Settings
+- ✅ **Modular Components** — all UI built with reusable components (`SectionCard`, `Modals`, etc.)
+
+---
+
+## 🛠 Tech Stack
+
+- **React** with **TypeScript** — typed front-end logic
+- **Vite** — fast dev server & build tool
+- **TailwindCSS** — utility-first styling
+- **React Router DOM** — multi-page routing
+- **LocalStorage** — temporary data retention (for now)
+
+---
+
+## 📁 Directory Structure
+
+```bash
+src/
+├── components/       # Shared UI: SectionCard, modals, top bar, sidebar
+├── pages/            # Home, Reports, Shift History, Settings
+├── utils/            # Form section definitions (sections.ts)
+├── App.tsx           # Root layout & routing
+└── main.tsx          # Entry point with React Router setup
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🚀 Getting Started
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+# 1. Clone the repo
+https://github.com/DatMack/extruder-dashboard.git
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server
+npm run dev
 ```
+
+> This app runs on Vite at `http://localhost:5173` by default
+
+---
+
+## 🔄 In-Progress Features
+
+- [x] Sidebar navigation & sticky top bar
+- [x] End-of-shift modal with time gating
+- [x] Login placeholder (mock operator selector)
+- [ ] Persist data to localStorage or backend
+- [ ] Full shift history listing by day/operator
+- [ ] Export/report generation (CSV, PDF)
+- [ ] Authentication & role-based access (admin/supervisor/operator)
+
+---
+
+## 🧪 Testing UX
+
+- Simulate "end of shift" by setting system time to 05:30–06:00 or 17:30–18:00
+- Use Login modal to impersonate an operator (not yet persisted)
+- Use DevTools to inspect saved localStorage data (coming soon)
+
+---
+
+## 👥 Contributors
+
+- **John** – Design, UX, architecture
+- **ChatGPT (Code Copilot)** – Implementation guidance, full-stack scaffolding
+
+---
+
+## 📄 License
+
+This project is licensed for internal use only. Contact the repository owner for permission to reuse, distribute, or contribute.
+
+---
+
+## 📬 Feedback or Help?
+
+Open an issue or reach out on GitHub: [@DatMack](https://github.com/DatMack)
