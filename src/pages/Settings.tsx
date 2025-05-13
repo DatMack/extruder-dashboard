@@ -10,16 +10,23 @@ import {
 } from 'recharts';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import LoginModal from '../components/LoginModal';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [operator, setOperator] = useState<string | null>(null);
   const [date, setDate] = useState(new Date());
+  const [operator, setOperator] = useState<string | null>(localStorage.getItem('operator'));
 
-  useEffect(() => {
-    const storedOperator = localStorage.getItem('operator');
-    if (storedOperator) setOperator(storedOperator);
-  }, []);
+  if (!operator) {
+    return (
+      <LoginModal
+        onLogin={(name) => {
+          localStorage.setItem('operator', name);
+          setOperator(name);
+        }}
+      />
+    );
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('operator');
@@ -75,7 +82,7 @@ export default function Settings() {
         <div className="bg-white p-6 rounded shadow border">
           <h2 className="text-xl font-semibold mb-4">User Info</h2>
           <div className="text-gray-800 font-medium text-lg">
-            Logged in as: {operator || 'No operator logged in'}
+            Logged in as: {operator}
           </div>
           <button
             onClick={handleLogout}
@@ -128,7 +135,9 @@ export default function Settings() {
             value={date}
             tileClassName={tileClassName}
           />
-          <div className="mt-2 text-sm text-gray-600 text-center">Yellow = Team A / Blue = Team B</div>
+          <div className="mt-2 text-sm text-gray-600 text-center">
+            Yellow = Team A / Blue = Team B
+          </div>
         </div>
       </div>
     </div>

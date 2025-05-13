@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 
 export interface SubmissionData {
   date: string;
@@ -19,11 +19,3 @@ interface SubmissionContextType {
 }
 
 export const SubmissionContext = createContext<SubmissionContextType | undefined>(undefined);
-
-export const useSubmissions = () => {
-  const context = useContext(SubmissionContext);
-  if (!context) {
-    throw new Error('useSubmissions must be used within a SubmissionProvider');
-  }
-  return context;
-};
