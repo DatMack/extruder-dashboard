@@ -1,42 +1,44 @@
-import { useState } from 'react';
+import React from 'react';
 import { useSubmissions } from '../context/useSubmissions';
 
-const ShiftHistory = () => {
-  const { submissions } = useSubmissions();
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+const ShiftHistory: React.FC = () => {
+  const { shiftLogs } = useSubmissions();
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">📋 Shift History</h1>
-
-      {submissions.length === 0 && (
-        <p className="text-gray-600">No entries logged yet.</p>
-      )}
-
-      {submissions.map((entry, index) => (
-        <div
-          key={index}
-          className="mb-4 border border-gray-300 rounded-md overflow-hidden"
-        >
-          {/* Collapsed View */}
-          <div
-            className="bg-gray-100 px-4 py-2 font-semibold cursor-pointer hover:bg-gray-200 transition"
-            onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
-          >
-            {entry.lotNumber} – {entry.product} @ {entry.time} on {entry.date}
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Shift History</h1>
+      {shiftLogs.map((shift, index) => (
+        <div key={index} className="mb-6 border rounded shadow p-4 bg-white">
+          <div className="font-semibold mb-2">
+            Lot #: {shift.lotNumber} | Product: {shift.productName} | Date: {shift.date} | Shift: {shift.shift}
           </div>
-
-          {/* Expanded View */}
-          {expandedIndex === index && (
-            <div className="bg-white px-4 py-3 text-sm space-y-2">
-              <p><strong>Operator:</strong> {entry.operator}</p>
-              <p><strong>Reading:</strong> {entry.reading}</p>
-              <p><strong>Comments:</strong> {entry.comments || 'N/A'}</p>
-              <p><strong>Die Type:</strong> {entry.dieType || 'N/A'}</p>
-              <p><strong>Knife Count:</strong> {entry.knifeCount || 'N/A'}</p>
-              <p><strong>Screw Type:</strong> {entry.screwType || 'N/A'}</p>
-            </div>
-          )}
+          <div className="overflow-auto">
+            <table className="table-auto w-full text-sm border">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border px-2 py-1">Time</th>
+                  <th className="border px-2 py-1">Operator</th>
+                  <th className="border px-2 py-1">Date</th>
+                  {shift.entries.length > 0 &&
+                    Object.keys(shift.entries[0].values).map((key) => (
+                      <th key={key} className="border px-2 py-1">{key}</th>
+                    ))}
+                </tr>
+              </thead>
+              <tbody>
+                {shift.entries.map((entry, i) => (
+                  <tr key={i}>
+                    <td className="border px-2 py-1">{entry.timestamp}</td>
+                    <td className="border px-2 py-1">{entry.operator}</td>
+                    <td className="border px-2 py-1">{entry.date}</td>
+                    {Object.values(entry.values).map((val, j) => (
+                      <td key={j} className="border px-2 py-1">{val}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </div>

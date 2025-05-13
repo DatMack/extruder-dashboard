@@ -1,70 +1,73 @@
-import React, { useState, useEffect } from 'react';
+;import React, { useState } from 'react';
 
 interface StartOrderModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  onSubmit: (lotNumber: string, productName: string, time: string, date: string) => void;
+  onConfirm?: (data: { lotNumber: string; productName: string }) => void;
 }
 
-const StartOrderModal: React.FC<StartOrderModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const StartOrderModal: React.FC<StartOrderModalProps> = ({ onClose, onConfirm }) => {
   const [lotNumber, setLotNumber] = useState('');
   const [productName, setProductName] = useState('');
-  const [time, setTime] = useState('');
-  const [date, setDate] = useState('');
+  const [showPreCheck, setShowPreCheck] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      const now = new Date();
-      setTime(now.toLocaleTimeString());
-      setDate(now.toLocaleDateString());
+  const handleStart = () => {
+    if (!lotNumber || !productName) {
+      alert('Please fill in all fields.');
+      return;
     }
-  }, [isOpen]);
+    setShowPreCheck(true);
+  };
 
-  if (!isOpen) return null;
+  const handlePreCheckComplete = () => {
+    onConfirm?.({ lotNumber, productName });
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-md w-96">
-        <h2 className="text-xl font-semibold mb-4">Start New Order</h2>
-        <div className="mb-4">
-          <label className="block mb-1">Lot Number</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded"
-            value={lotNumber}
-            onChange={(e) => setLotNumber(e.target.value)}
-          />
+    <>
+      {!showPreCheck ? (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative">
+            <h2 className="text-xl font-bold mb-4">Start Order</h2>
+
+            <label className="block mb-1 font-medium">Lot Number</label>
+            <input
+              type="text"
+              value={lotNumber}
+              onChange={(e) => setLotNumber(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded mb-4"
+              placeholder="e.g. LOT-001"
+            />
+
+            <label className="block mb-1 font-medium">Product Name</label>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded mb-4"
+              placeholder="e.g. ABC Pellets"
+            />
+
+            <div className="flex justify-between mt-6">
+              <button onClick={onClose} className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">
+                Cancel
+              </button>
+              <button
+                onClick={handleStart}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="mb-4">
-          <label className="block mb-1">Product Name</label>
-          <input
-            type="text"
-            className="w-full border px-3 py-2 rounded"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-          />
-        </div>
-        <div className="mb-4">
-          <p><strong>Time:</strong> {time}</p>
-          <p><strong>Date:</strong> {date}</p>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSubmit(lotNumber, productName, time, date)}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Start Order
-          </button>
-        </div>
-      </div>
-    </div>
+      ) : (
+        <PreStartCheckModal onConfirm={handlePreCheckComplete} onCancel={onClose} />
+      )}
+    </>
   );
 };
 
 export default StartOrderModal;
+
+import PreStartCheckModal from './PreStartCheckModal';
