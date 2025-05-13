@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ShiftEndWarningModal from './components/ShiftEndWarningModal';
 import { HiMenu } from 'react-icons/hi';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import ShiftHistory from './pages/ShiftHistory';
 import Reports from './pages/Reports';
@@ -110,7 +110,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-32 px-6">
+    <div className={`min-h-screen bg-gray-100 pt-32 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : ''}`}>
       <HeaderInfo toggleSidebar={() => setSidebarOpen(!sidebarOpen)} operator={operator} />
 
       <Routes>
@@ -154,8 +154,20 @@ export default function App() {
         />
       )}
 
+      {sidebarOpen && (
+        <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 p-4 transition-transform duration-300 ease-in-out">
+          <h2 className="text-lg font-bold mb-4">Navigation</h2>
+          <ul className="space-y-2">
+            <li><Link to="/" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Home</Link></li>
+            <li><Link to="/shift-history" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Shift History</Link></li>
+            <li><Link to="/reports" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Reports</Link></li>
+            <li><Link to="/settings" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Settings</Link></li>
+          </ul>
+        </div>
+      )}
+
       {location.pathname === '/reports' && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-300 flex flex-wrap justify-around items-center p-4 shadow-md">
+        <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 z-40 bg-white border-t border-gray-300 flex flex-wrap justify-around items-center p-4 shadow-md transition-all duration-300`}>
           <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={() => setShowStartModal(true)}>
             Start Order
           </button>
@@ -187,4 +199,4 @@ export default function App() {
       )}
     </div>
   );
-} 
+}
