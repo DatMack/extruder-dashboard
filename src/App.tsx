@@ -1,71 +1,32 @@
 import { useEffect, useState } from 'react';
-import ShiftEndWarningModal from './components/ShiftEndWarningModal';
-import { HiMenu } from 'react-icons/hi';
-import { Routes, Route, useLocation, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
-import ShiftHistory from './pages/ShiftHistory';
 import Reports from './pages/Reports';
+import ShiftHistory from './pages/ShiftHistory';
 import Settings from './pages/Settings';
+import HeaderInfo from './components/HeaderInfo';
 import LoginModal from './components/LoginModal';
 import StartOrderModal from './components/StartOrderModal';
 import EndOrderModal from './components/EndOrderModal';
 import ShutdownModal from './components/ShutdownModal';
-import ResumeStartModal from './components/ResumeStartModal';
+import ResumeStartupModal from './components/StartUpModal';
 import EndShiftModal from './components/EndShiftModal';
+import ShiftEndWarningModal from './components/ShiftEndWarningModal';
 import { useSubmissions } from './context/useSubmissions';
 import { sections } from './utils/sections';
 
-const HeaderInfo = ({ toggleSidebar, operator }: { toggleSidebar: () => void; operator: string | null }) => {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="w-full px-4 py-2 bg-white shadow border-b fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-screen-xl mx-auto flex flex-wrap justify-between items-center text-sm text-gray-700">
-        <button onClick={toggleSidebar} className="text-2xl p-2 mr-4">
-          <HiMenu />
-        </button>
-        <div className="flex flex-col items-start">
-          <span className="font-semibold">Lot Number</span>
-          <span>(Auto-filled)</span>
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="font-semibold">Product Name</span>
-          <span>(Auto-filled)</span>
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="font-semibold">Time</span>
-          <span>{time.toLocaleTimeString()}</span>
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="font-semibold">Date</span>
-          <span>{time.toLocaleDateString()}</span>
-        </div>
-        <div className="flex flex-col items-start">
-          <span className="font-semibold">Operator</span>
-          <span>{operator || '(Pending Login)'}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default function App() {
   const [operator, setOperator] = useState<string | null>(null);
-  const [showWarning, setShowWarning] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showStartModal, setShowStartModal] = useState(false);
-  const [showEndModal, setShowEndModal] = useState(false);
-  const [showShutdownModal, setShowShutdownModal] = useState(false);
-  const [isShutdown, setIsShutdown] = useState(false);
-  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [startOrder, setStartOrder] = useState(false);
+  const [endOrder, setEndOrder] = useState(false);
+  const [shutdown, setShutdown] = useState(false);
+  const [shutdownModalOpen, setShutdownModalOpen] = useState(false);
+  const [resumeOrder, setResumeOrder] = useState(false);
   const [showEndShiftModal, setShowEndShiftModal] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+
   const location = useLocation();
-  const { submitCompleteEntry } = useSubmissions();
 
   useEffect(() => {
     const checkWarning = () => {
@@ -74,15 +35,12 @@ export default function App() {
       const dayWarn = totalMinutes >= 1070 && totalMinutes < 1080;
       const nightWarn = totalMinutes >= 350 && totalMinutes < 360;
       const warningWindow = dayWarn || nightWarn;
-
       if (!warningWindow) return;
-
       const endSection = sections.find(s => s.id === 'end_shift_summary');
       const anyEmpty = endSection?.fields.some(field => {
         const el = document.getElementById(field.id) as HTMLInputElement;
         return !el || el.value.trim() === '';
       });
-
       if (anyEmpty) {
         setShowWarning(true);
       }
@@ -93,25 +51,41 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = () => {
-    const values: Record<string, string> = {};
-    sections.forEach((section) => {
-      if (section.id === 'end_shift_summary') return;
-      section.fields.forEach((field) => {
-        const el = document.getElementById(field.id) as HTMLInputElement | null;
-        if (el) values[field.id] = el.value;
-      });
-    });
-    submitCompleteEntry(values, operator || 'Unknown');
-  };
-
-  if (!operator) {
-    return <LoginModal onLogin={(name) => setOperator(name)} />;
-  }
+  if (!operator) return <LoginModal onLogin={setOperator} />;
 
   return (
-    <div className={`min-h-screen bg-gray-100 pt-32 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : ''}`}>
+    <div className="min-h-screen bg-gray-100 pt-32 px-6 overflow-x-hidden">
       <HeaderInfo toggleSidebar={() => setSidebarOpen(!sidebarOpen)} operator={operator} />
+
+      {/* Animated Sidebar */}
+      <div
+        className={`fixed inset-0 z-40 transition duration-300 ${
+          sidebarOpen ? 'visible' : 'invisible'
+        }`}
+      >
+        <div
+          className={`absolute inset-0 bg-black bg-opacity-40 transition-opacity ${
+            sidebarOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setSidebarOpen(false)}
+        />
+
+        <div
+          className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Navigation</h2>
+            <ul className="space-y-2">
+              <li><Link to="/" onClick={() => setSidebarOpen(false)} className="block px-3 py-2 hover:bg-gray-100">Home</Link></li>
+              <li><Link to="/shift-history" onClick={() => setSidebarOpen(false)} className="block px-3 py-2 hover:bg-gray-100">Shift History</Link></li>
+              <li><Link to="/reports" onClick={() => setSidebarOpen(false)} className="block px-3 py-2 hover:bg-gray-100">Reports</Link></li>
+              <li><Link to="/settings" onClick={() => setSidebarOpen(false)} className="block px-3 py-2 hover:bg-gray-100">Settings</Link></li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -120,83 +94,27 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
       </Routes>
 
-      {showWarning && <ShiftEndWarningModal onClose={() => setShowWarning(false)} />}
-      {showStartModal && <StartOrderModal onClose={() => setShowStartModal(false)} />}
-      {showEndModal && <EndOrderModal onClose={() => setShowEndModal(false)} />}
-      {showShutdownModal && (
-        <ShutdownModal
-          onClose={() => setShowShutdownModal(false)}
-          onConfirm={({ reason, startTime }) => {
-            console.log('Shutdown reason:', reason);
-            console.log('Started at:', startTime);
-            setIsShutdown(true);
-            setShowShutdownModal(false);
-          }}
-        />
-      )}
-      {showResumeModal && (
-        <ResumeStartModal
-          onClose={() => setShowResumeModal(false)}
-          onConfirm={(data) => {
-            console.log('Resume with startup values:', data);
-            setIsShutdown(false);
-            setShowResumeModal(false);
-          }}
-        />
-      )}
-      {showEndShiftModal && (
-        <EndShiftModal
-          onClose={() => setShowEndShiftModal(false)}
-          onConfirm={(data) => {
-            console.log('End Shift Data:', data);
-            setShowEndShiftModal(false);
-          }}
-        />
-      )}
-
-      {sidebarOpen && (
-        <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 p-4 transition-transform duration-300 ease-in-out">
-          <h2 className="text-lg font-bold mb-4">Navigation</h2>
-          <ul className="space-y-2">
-            <li><Link to="/" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Home</Link></li>
-            <li><Link to="/shift-history" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Shift History</Link></li>
-            <li><Link to="/reports" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Reports</Link></li>
-            <li><Link to="/settings" className="block p-2 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>Settings</Link></li>
-          </ul>
-        </div>
-      )}
-
       {location.pathname === '/reports' && (
-        <div className={`fixed bottom-0 ${sidebarOpen ? 'left-64' : 'left-0'} right-0 z-40 bg-white border-t border-gray-300 flex flex-wrap justify-around items-center p-4 shadow-md transition-all duration-300`}>
-          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={() => setShowStartModal(true)}>
-            Start Order
-          </button>
-          <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" onClick={() => setShowEndModal(true)}>
-            End Order
-          </button>
-          <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" onClick={() => setShowShutdownModal(true)}>
-            Shutdown
-          </button>
-          {isShutdown && (
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700" onClick={() => setShowResumeModal(true)}>
-              Resume Order
-            </button>
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-300 flex justify-around items-center p-4 shadow-md">
+          <button className="w-full max-w-xs mx-2 bg-blue-600 text-white py-3 rounded hover:bg-blue-700" onClick={() => setStartOrder(true)} disabled={shutdown && !resumeOrder}>Start Order</button>
+          <button className="w-full max-w-xs mx-2 bg-green-600 text-white py-3 rounded hover:bg-green-700" onClick={() => setEndOrder(true)} disabled={shutdown && !resumeOrder}>End Order</button>
+          {!shutdown && (
+            <button className="w-full max-w-xs mx-2 bg-yellow-500 text-white py-3 rounded hover:bg-yellow-600" onClick={() => setShutdownModalOpen(true)}>Shutdown</button>
           )}
-          <button
-            id="submit-data-button"
-            onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Submit Entry
-          </button>
-          <button
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-            onClick={() => setShowEndShiftModal(true)}
-          >
-            End Shift
-          </button>
+          {shutdown && (
+            <button className="w-full max-w-xs mx-2 bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700" onClick={() => setResumeOrder(true)}>Resume Order</button>
+          )}
+          <button className="w-full max-w-xs mx-2 bg-gray-800 text-white py-3 rounded hover:bg-gray-900" onClick={() => alert('Submitting Data...')} disabled={shutdown && !resumeOrder}>Submit Entry</button>
+          <button className="w-full max-w-xs mx-2 bg-black text-white py-3 rounded hover:bg-gray-800" onClick={() => setShowEndShiftModal(true)} disabled={shutdown && !resumeOrder}>End Shift</button>
         </div>
       )}
+
+      {showEndShiftModal && <EndShiftModal onClose={() => setShowEndShiftModal(false)} />}
+      {showWarning && <ShiftEndWarningModal onClose={() => setShowWarning(false)} />}
+      {startOrder && <StartOrderModal onClose={() => setStartOrder(false)} />}
+      {endOrder && <EndOrderModal onClose={() => setEndOrder(false)} />}
+      {shutdownModalOpen && <ShutdownModal onClose={() => setShutdownModalOpen(false)} onConfirm={() => { setShutdown(true); setShutdownModalOpen(false); }} />}
+      {resumeOrder && <ResumeStartupModal onClose={() => { setResumeOrder(false); setShutdown(false); }} />}
     </div>
   );
 }
